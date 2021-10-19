@@ -1,5 +1,5 @@
 from generator.stickman import stick_man_generator
-from generator.test import generate_test_dataset
+from generator.test import generate_test_dataset, generate_val_dataset
 from model.DNN import create_DNN
 from model.backbones import possible_backbones
 from model.heads import possible_heads
@@ -9,7 +9,7 @@ from train.transfo import transform_labels_heatmaps, transform_labels_scalars
 from save.saver import save_trained_model
 from save.collect import get_trained_DNN
 from visu.show import visu_eval_DNN
-from evaluation_test.test import eval_DNN, evaluate_on_a_set, evaluate_on_val_set
+from evaluation_test.test import eval_DNN, evaluate_on_val_set
 
 from generator.keypoints import get_annotations
 
@@ -120,6 +120,9 @@ if not args.load:
 		transform_labels=transfo[args.head], 
 		metric=metrics[args.metric])
 	image_shape = args.shape
+ 
+	#generate_val_dataset(val_set)
+
 
 else:
 	DNN, dnn_config = get_trained_DNN(num_key_points=int(val_set.key_points.labels.shape[-1]/2))
@@ -131,18 +134,14 @@ else:
 		p_real=args.real, 
 		input_shape = (dnn_config['shape'],dnn_config['shape'],3))
 	image_shape = dnn_config['shape']
-	#Ajout
-	#np.save("Val_set", val_set.__getitem__)
-	#evaluate_on_val_set(DNN=DNN, image_shape=image_shape, eval_set=val_set)
-	print("Eval")
-	eval_DNN(DNN=DNN, image_shape=image_shape)
 
 
 if not args.load:
 	errors = eval_DNN(DNN=DNN, image_shape=image_shape)
+	val_error = evaluate_on_val_set(DNN=DNN, image_shape=image_shape)
 	print(errors)
-	
-	save_trained_model(parser=args, DNN=DNN, error = errors)
+
+	save_trained_model(parser=args, DNN=DNN, error = errors, error_val = val_error)
 else:
 	#To generate the dataset (stickman images + labels)
 	#generate_test_dataset()

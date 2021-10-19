@@ -46,40 +46,42 @@ def eval_DNN(DNN, image_shape):
 			evaluate_on_a_set(DNN=DNN, image_shape=image_shape, eval_set=3),
 			evaluate_on_a_set(DNN=DNN, image_shape=image_shape, eval_set=4))
 
-def evaluate_on_val_set(DNN, image_shape, eval_set):
+def evaluate_on_val_set(DNN, image_shape):
 	preds = []
 	errors = []
-	nb_images= eval_set.__len__()
-	#print("Nb images in val_set=", nb_images)
-	Folder_Images="./Val_set_images"
-	saving_images = True
+	if 'Valset' in os.listdir('..'):
+		if 'Val' in os.listdir('../Valset'):
+			is_labelled = False
+			if 'Val_labels.npy' in os.listdir('../Valset'):
+				labels = np.load('../Valset/' + 'Val_labels.npy')
+				is_labelled = True
+			images = ['../Valset/Val/' + e for e in os.listdir('../Valset/Val/') if '.png' in e]
+			images.sort()
+			for cpt, img in enumerate(images):
+				print('\rtesting on val_set: %i/%i'%( cpt+1, len(images)), end='')
+				img_ = cv2.imread(img, cv2.IMREAD_UNCHANGED)
+				img = cv2.resize(cv2.imread(img, cv2.IMREAD_UNCHANGED), (image_shape, image_shape)) / 255
+				pred = DNN.predict(np.expand_dims(img,axis = 0)) / image_shape
+				if is_labelled:
+					KP=labels[cpt]
+					KP_x = np.copy(KP[::2]) / img_.shape[0]
+					KP_y = np.copy(KP[1::2]) / img_.shape[1]
+					KP[::2] = KP_x
+					KP[1::2] = KP_y
+					errors.append(np.sum(np.abs(KP - pred)[0][KP > 0]))
+					preds.append(pred)
+					#print(pred)
 
-	if 'Val_set_images' not in os.listdir('.'):
-		os.mkdir('./Val_set_images')
-	
-	for cpt in range(nb_images):
-		image, label = eval_set.__getitem__(cpt)
+				else:
+					preds.append(pred)
+			np.save("predicts_val", preds)
+			print("Preds_shape = ", len(preds))
+			print()
+		print("Saved")	
+		if is_labelled:
+			return np.mean(errors)
 
-		print('\rEvaluating on val_set : %i/%i'%(cpt+1, nb_images), end='')
-		pred = DNN.predict(image) / image_shape
-		KP=label
-		KP_x = np.copy(KP[::2]) / image.shape[0]
-		KP_y = np.copy(KP[1::2]) / image.shape[1]
-		KP[::2] = KP_x
-		KP[1::2] = KP_y
-		#errors.append(np.sum(np.abs(KP - pred)[0][KP > 0]))
-		preds.append(pred)
-		if(saving_images==True):
-			cv2.imwrite(Folder_Images+'/'+str(cpt)+'.png', np.uint8(255*image[0]))
-		
-	#Save the predicts values for each image
-	np.save("predicts_val", preds)
-	#print("Mean error on the val_set", np.mean(errors)) 
-
-
-	print("\nEvaluating the val set done")
-
-	return None
+		return None
 
 
 # import os

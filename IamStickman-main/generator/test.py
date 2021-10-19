@@ -49,3 +49,18 @@ def generate_test_dataset():
 		cv2.imwrite('../Dataset/Test4/' + str(i) + '.png',np.uint8(255*images[0]))
 	np.save('../Dataset/test4_labels.npy', KPs)
 	print('\rcreating test set 4 : --- done ---\n')
+ 
+ 
+def generate_val_dataset(val_dataset):
+	num_images = val_dataset.__len__()
+	if 'Valset' not in os.listdir('..'):
+		os.mkdir('../Valset')
+		os.mkdir('../Valset/Val')
+		KPs = []
+		for i in range(int(num_images)):
+			print('\rcreating val set: %i/%i'%(i+1, int(num_images)),end='')
+			images,KP=val_dataset.__getitem__(index=i)
+			KPs.append(KP[0])
+			cv2.imwrite('../Valset/Val/' + str(i) + '.png',np.uint8(255*images[0]))
+		np.save('../Valset/Val_labels.npy', KPs)
+		print('\rcreating val set: --- done ---\n')

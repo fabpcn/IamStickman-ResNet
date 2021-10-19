@@ -27,7 +27,7 @@ def save_trained_model(parser, DNN, error, error_val):
 		'error3' : error[2],
 		'error4' : error[3],
 		#ajout
-		'accuracy on val'    : error_val,
+		'accuracy_on_val' : error_val,
 		#
 	}
 	if 'trained_DNNs' not in os.listdir():
