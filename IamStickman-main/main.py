@@ -18,6 +18,9 @@ import tensorflow as tf
 import os
 import argparse
 import nvidia_smi
+CUDA_VISIBLE_DEVICES=0
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 #import nvsmi
 import numpy as np
 import sys
