@@ -39,14 +39,27 @@ def create_vgg(x):
 	return x
 
 def create_resnet8(x):
-	x = conv_block(x, num_filters = 64, kernel_size = 7, strides = 2, activation='relu')
-	x = tf.keras.layers.MaxPooling2D(
-    pool_size=(2, 2), strides=None, padding="valid", data_format=None)
-	x = conv_block(x, num_filters = 64, kernel_size = 3, strides = 2, activation='relu')(x)
+	#This architecture contains : 
+	#Image input is 224x224*3
+	#input_shape = (len(images), 224, 224, 3)
+
+	x = conv_block(x, num_filters = 64, kernel_size = 7, strides = 2, activation="relu")
+
+	x = tf.keras.layers.MaxPooling2D(pool_size=(3, 3), strides=2, padding="valid", data_format=None)(x)
+
+	x = residual_block(x, k=2, kernel_size=3, num_filters=64)
+	x = tf.keras.layers.Activation('relu')(x)
+	x = residual_block(x, k=2, kernel_size=3, num_filters=64)
+	x = tf.keras.layers.Activation('relu')(x)
+	x = residual_block(x, k=2, kernel_size=3, num_filters=64)
+	x = tf.keras.layers.Activation('relu')(x)
+
+	x = tf.keras.layers.AveragePooling2D(pool_size=(2,2), strides=None , padding="same", data_format=None)(x)
 
 	return x
 
 possible_backbones = {
 	'VGG':create_vgg, 
 	'Identity':Identity,
+	'Resnet8' : create_resnet8,
 }

@@ -8,8 +8,9 @@ from train.metrics import metric_MPJPE, metric_3DPCK
 from train.transfo import transform_labels_heatmaps, transform_labels_scalars
 from save.saver import save_trained_model
 from save.collect import get_trained_DNN
-from visu.show import visu_eval_DNN
+from visu.show import visu_eval_DNN, visu_eval_val_DNN
 from evaluation_test.test import eval_DNN, evaluate_on_val_set
+import time
 
 from generator.keypoints import get_annotations
 
@@ -140,6 +141,7 @@ if not args.load:
 	errors = eval_DNN(DNN=DNN, image_shape=image_shape)
 	val_error = evaluate_on_val_set(DNN=DNN, image_shape=image_shape)
 	print(errors)
+	print(val_error)
 
 	save_trained_model(parser=args, DNN=DNN, error = errors, error_val = val_error)
 else:
@@ -147,6 +149,6 @@ else:
 	#generate_test_dataset()
 	#print("\nDATASET GENERATED\n")
 	# print("Eval")
-	# #error = visu_eval_DNN(DNN=DNN, image_shape=image_shape)
-	# #print(error)
+	error = visu_eval_val_DNN(DNN=DNN, image_shape=image_shape)
+	print(error)
 	print("done")

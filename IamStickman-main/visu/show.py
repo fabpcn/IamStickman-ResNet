@@ -86,6 +86,76 @@ def visu_eval_DNN(DNN, image_shape):
 			evaluate_on_a_set(DNN=DNN, image_shape=image_shape, eval_set=3),
 			evaluate_on_a_set(DNN=DNN, image_shape=image_shape, eval_set=4))
 
+
+
+'''''''''''''''''''''''''Ajout'''''''''''''''''''
+def evaluate_on_val_set(DNN, image_shape):
+	preds = []
+	errors = []
+	if 'Valset' in os.listdir('..'):
+		if 'Val' in os.listdir('../Valset'):
+			is_labelled = False
+			if 'Val_labels.npy' in os.listdir('../Valset'):
+				labels = np.load('../Valset/' + 'Val_labels.npy')
+				is_labelled = True
+			images = ['../Valset/Val/' + e for e in os.listdir('../Valset/Val/') if '.png' in e]
+			images.sort()
+			for cpt, img in enumerate(images):
+				print('\rtesting on val_set: %i/%i'%( cpt+1, len(images)), end='')
+				img_ = cv2.imread(img, cv2.IMREAD_UNCHANGED)
+				img = cv2.resize(cv2.imread(img, cv2.IMREAD_UNCHANGED), (image_shape, image_shape)) / 255
+				pred = DNN.predict(np.expand_dims(img,axis = 0)) / image_shape
+				if is_labelled:
+					KP=labels[cpt]
+					KP_x = np.copy(KP[::2]) / img_.shape[0]
+					KP_y = np.copy(KP[1::2]) / img_.shape[1]
+					KP[::2] = KP_x
+					KP[1::2] = KP_y
+					errors.append(np.sum(np.abs(KP - pred)[0][KP > 0]))
+					preds.append(pred)
+					image = create_visualization(pred=pred[0] * image_shape, image=img, vt=KP * image_shape)
+					cv2.imshow('',np.uint8(image))
+					k = cv2.waitKey(33)
+					if k==27:	# Esc key to stop
+						sys.exit()
+					elif k==32: # Esc space to pause
+						k = cv2.waitKey(33)
+						while(k != 32):
+							k = cv2.waitKey(33)
+							continue
+				else:
+					preds.append(pred)
+					image = create_visualization(pred=pred[0] * image_shape, image=img, vt=None)
+					cv2.imshow('',np.uint8(image))
+					k = cv2.waitKey(33)
+					if k==27:	# Esc key to stop
+						sys.exit()
+					elif k==32: # Esc space to pause
+						k = cv2.waitKey(33)
+						while(k != 32):
+							k = cv2.waitKey(33)
+							continue
+
+			np.save("predicts_val", preds)
+			#print("Preds_shape = ", len(preds))
+			print()
+		print("Saved")	
+		if is_labelled:
+			return np.mean(errors)
+
+		return None
+
+def visu_eval_val_DNN(DNN, image_shape):
+	return evaluate_on_val_set(DNN=DNN, image_shape=image_shape)
+
+
+# import os
+# import cv2
+# import numpy as np
+
+# def evaluate_on_a_set(DNN, image_shape, eval_set):
+# 	preds = []
+# 	errors = []
 # def visualization(DNN, val_set, show_image):
 # 	errors = []
 # 	for step in range(val_set.__len__()):
