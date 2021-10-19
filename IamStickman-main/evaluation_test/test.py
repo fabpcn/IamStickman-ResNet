@@ -31,9 +31,7 @@ def evaluate_on_a_set(DNN, image_shape, eval_set):
 				else:
 					preds.append(pred)
 			np.save("predicts_test"+str(eval_set), preds)
-			print("Preds_shape = ", len(preds))
-			print()
-		print("Saved")	
+			print("Saved")	
 		if is_labelled:
 			return np.mean(errors)
 
@@ -63,7 +61,7 @@ def evaluate_on_val_set(DNN, image_shape):
 				img = cv2.resize(cv2.imread(img, cv2.IMREAD_UNCHANGED), (image_shape, image_shape)) / 255
 				pred = DNN.predict(np.expand_dims(img,axis = 0)) / image_shape
 				if is_labelled:
-					KP=labels[cpt].astype('float32')
+					KP=labels[cpt].astype('float')
 					KP_x = np.copy(KP[::2]) / img_.shape[0]
 					KP_y = np.copy(KP[1::2]) / img_.shape[1]
 					KP[::2] = KP_x
@@ -74,9 +72,7 @@ def evaluate_on_val_set(DNN, image_shape):
 				else:
 					preds.append(pred)
 			np.save("predicts_val", preds)
-			print("Preds_shape = ", len(preds))
-			print()
-		print("Saved")	
+			print("Saved")	
 		if is_labelled:
 			return np.mean(errors)
 
