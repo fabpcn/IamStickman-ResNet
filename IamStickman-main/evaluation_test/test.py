@@ -63,14 +63,13 @@ def evaluate_on_val_set(DNN, image_shape):
 				img = cv2.resize(cv2.imread(img, cv2.IMREAD_UNCHANGED), (image_shape, image_shape)) / 255
 				pred = DNN.predict(np.expand_dims(img,axis = 0)) / image_shape
 				if is_labelled:
-					KP=labels[cpt]
+					KP=labels[cpt].astype('float32')
 					KP_x = np.copy(KP[::2]) / img_.shape[0]
 					KP_y = np.copy(KP[1::2]) / img_.shape[1]
 					KP[::2] = KP_x
 					KP[1::2] = KP_y
 					errors.append(np.sum(np.abs(KP - pred)[0][KP > 0]))
 					preds.append(pred)
-					#print(pred)
 
 				else:
 					preds.append(pred)
