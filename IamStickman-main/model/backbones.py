@@ -38,6 +38,15 @@ def create_vgg(x):
 	x = tf.keras.layers.Activation('relu')(x)
 	return x
 
+def create_resnet8(x):
+	x = conv_block(x, num_filters = 64, kernel_size = 7, strides = 2, activation='relu')
+	x = tf.keras.layers.MaxPooling2D(
+    pool_size=(2, 2), strides=None, padding="valid", data_format=None)
+	x = conv_block(x, num_filters = 64, kernel_size = 3, strides = 2, activation='relu')(x)
+
+	return x
+
 possible_backbones = {
-	'VGG':create_vgg, 'Identity':Identity,
+	'VGG':create_vgg, 
+	'Identity':Identity,
 }
