@@ -8,7 +8,7 @@ from train.metrics import metric_MPJPE, metric_3DPCK
 from train.transfo import transform_labels_heatmaps, transform_labels_scalars
 from save.saver import save_trained_model
 from save.collect import get_trained_DNN
-from visu.show import visu_eval_DNN, visu_eval_val_DNN
+from visu.show import visu_eval_DNN, visu_eval_val_DNN, visu_train_DNN
 from evaluation_test.test import eval_DNN, evaluate_on_val_set
 import time
 
@@ -124,9 +124,8 @@ if not args.load:
 		transform_labels=transfo[args.head], 
 		metric=metrics[args.metric])
 	image_shape = args.shape
- 
-	#generate_val_dataset(val_set)
 
+	#visu_train_DNN(DNN, train_set, image_shape= args.shape)
 
 else:
 	DNN, dnn_config = get_trained_DNN(num_key_points=int(val_set.key_points.labels.shape[-1]/2))
@@ -142,11 +141,15 @@ else:
 
 if not args.load:
 	errors = eval_DNN(DNN=DNN, image_shape=image_shape)
+	#generate_val_dataset()
 	val_error = evaluate_on_val_set(DNN=DNN, image_shape=image_shape)
 	print(errors)
 	print(val_error)
-
 	save_trained_model(parser=args, DNN=DNN, error = errors, error_val = val_error)
+	
+	error = visu_eval_val_DNN(DNN=DNN, image_shape=image_shape)
+
+	print(error)
 else:
 	#To generate the dataset (stickman images + labels)
 	#generate_test_dataset()

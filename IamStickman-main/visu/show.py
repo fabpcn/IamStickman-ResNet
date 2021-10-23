@@ -4,13 +4,13 @@ import sys
 import time
 import os
 
-from train.metrics import max_coords
+#from train.metrics import max_coords
 
-def draw_vt(vt, shape):
+def draw_vt(vt, shape, color):
 	thickness = max(int(np.round(5*shape[0]/224)), 1)
 	output = np.zeros(shape)
 	for i in range(int(len(vt)/2)):
-		cv2.circle(output,(int(np.round(vt[2*i])), int(np.round(vt[2*i +1]))), thickness, (255,255,0), -1)
+		cv2.circle(output,(int(np.round(vt[2*i])), int(np.round(vt[2*i +1]))), thickness, color, -1)
 	return output
 
 def create_visualization(pred, image, vt):
@@ -25,8 +25,8 @@ def create_visualization(pred, image, vt):
 		pred = tmp
 	output[:W,:,:] = 255 * image
 	if vt is not None:
-		output[W:2*W,:,:] = draw_vt(vt=vt, shape=image.shape)
-	output[2*W:,:,:] = draw_vt(vt=pred, shape=image.shape)
+		output[W:2*W,:,:] = draw_vt(vt=vt, shape=image.shape, color = (255, 0, 0))
+	output[2*W:,:,:] = draw_vt(vt=pred, shape=image.shape, color = (0, 255, 255))
 	return output
 
 def evaluate_on_a_set(DNN, image_shape, eval_set):
@@ -46,7 +46,7 @@ def evaluate_on_a_set(DNN, image_shape, eval_set):
 				img = cv2.resize(cv2.imread(img, cv2.IMREAD_UNCHANGED), (image_shape, image_shape)) / 255
 				pred = DNN.predict(np.expand_dims(img,axis = 0)) / image_shape
 				if is_labelled:
-					KP=labels[cpt]
+					KP=labels[cpt].astype(float)
 					KP_x = np.copy(KP[::2]) / img_.shape[0]
 					KP_y = np.copy(KP[1::2]) / img_.shape[1]
 					KP[::2] = KP_x
@@ -63,6 +63,7 @@ def evaluate_on_a_set(DNN, image_shape, eval_set):
 						while(k != 32):
 							k = cv2.waitKey(33)
 							continue
+					input()
 				else:
 					preds.append(pred)
 					image = create_visualization(pred=pred[0] * image_shape, image=img, vt=None)
@@ -107,9 +108,8 @@ def evaluate_on_val_set(DNN, image_shape):
 				img = cv2.resize(cv2.imread(img, cv2.IMREAD_UNCHANGED), (image_shape, image_shape)) / 255
 				pred = DNN.predict(np.expand_dims(img,axis = 0)) / image_shape
 				if is_labelled:
-					KP=labels[cpt].astype('float32')
-					#print(KP)
-					#print(labels[0])
+					KP=labels[cpt].astype(np.float)
+
 					KP_x = np.copy(KP[::2]) / img_.shape[0]
 					KP_y = np.copy(KP[1::2]) / img_.shape[1]
 					#print(KP_x, KP_y)
@@ -154,6 +154,48 @@ def visu_eval_val_DNN(DNN, image_shape):
 	return evaluate_on_val_set(DNN=DNN, image_shape=image_shape)
 
 
+def visu_train_DNN(DNN, train_set, image_shape):
+	num_images = train_set.__len__()
+	print(num_images)
+	KPs = []
+	preds = []
+	errors = []
+	print(num_images)
+	for i in range(int(num_images)):
+		img,KP=train_set.__getitem__(index=i)
+		KP = KP.astype(float)
+		for j in range(img.shape[0]):
+			#print(KP.shape)
+			#KPs.append(KP[0][j])
+			img_ = img[j]
+
+			KP_x = np.copy(KP[j][::2]) / img_.shape[0]
+			KP_y = np.copy(KP[j][1::2]) / img_.shape[1]
+			#print(KP_x, KP_y)
+			KP[j][::2] = KP_x
+			KP[j][1::2] = KP_y
+			pred = DNN.predict(np.expand_dims(img[j]/255,axis = 0)) / image_shape
+			# print(pred.shape)
+			# print(KP.shape)
+			# print(np.sum(np.abs(KP[j] - pred)[0]).shape)
+			errors.append(np.sum(np.abs(KP[j] - pred)[0][KP[j] > 0]))
+			preds.append(pred)
+			image = create_visualization(pred=pred[0] * image_shape, image=img[j], vt=KP[j] * image_shape)
+			cv2.imshow('',np.uint8(image))
+			k = cv2.waitKey(33)
+			if k==27:	# Esc key to stop
+				sys.exit()
+			elif k==32: # Esc space to pause
+				k = cv2.waitKey(33)
+				while(k != 32):
+					k = cv2.waitKey(33)
+					continue
+			input()
+	return None
+		
+    
+
+
 # import os
 # import cv2
 # import numpy as np
@@ -187,3 +229,18 @@ def visu_eval_val_DNN(DNN, image_shape):
 # 				print('\t',KP[i])
 # 				# time.sleep(1)
 # 	return errors[-1]
+
+
+if __name__ == '__main__':
+    import sys
+    sys.path.append('c:\\Users\\fabic\\Desktop\\Cours Td Cloud\\M2\\Signaux_Sociaux\\IamStickman-ResNet\\IamStickman-main')
+    from generator.stickman import stick_man_generator
+    
+    train = stick_man_generator(
+		batch_size = 64, 
+		set_of_data = 'train', 
+		p_circles= 0.5, 
+		p_squares=0.3, 
+		p_real= 0.9, 
+		input_shape = (224, 224, 3))
+    visu_train_DNN(None, train, 224)

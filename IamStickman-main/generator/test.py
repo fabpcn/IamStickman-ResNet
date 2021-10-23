@@ -51,16 +51,17 @@ def generate_test_dataset():
 	print('\rcreating test set 4 : --- done ---\n')
  
  
-def generate_val_dataset(val_dataset):
+def generate_val_dataset():
+	val_dataset = stick_man_generator(batch_size = 1, set_of_data = 'val', p_circles= 0.5, p_squares=0.3, p_real= 0.9, input_shape = (224,224,3))
 	num_images = val_dataset.__len__()
 	if 'Valset' not in os.listdir('..'):
 		os.mkdir('../Valset')
 		os.mkdir('../Valset/Val')
-		KPs = []
-		for i in range(int(num_images)):
-			print('\rcreating val set: %i/%i'%(i+1, int(num_images)),end='')
-			images,KP=val_dataset.__getitem__(index=i)
-			KPs.append(KP[0])
-			cv2.imwrite('../Valset/Val/' + str(i) + '.png',np.uint8(255*images[0]))
-		np.save('../Valset/Val_labels.npy', KPs)
-		print('\rcreating val set: --- done ---\n')
+	KPs = []
+	for i in range(int(num_images/12)):
+		print('\rcreating val set: %i/%i'%(i+1, int(num_images/12)),end='')
+		images,KP=val_dataset.__getitem__(index=i)
+		KPs.append(KP[0])
+		cv2.imwrite('../Valset/Val/' + str(i) + '.png',np.uint8(255*images[0]))
+	np.save('../Valset/Val_labels.npy', KPs)
+	print('\rcreating val set: --- done ---\n')
